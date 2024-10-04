@@ -1,5 +1,5 @@
 default:
-	gcc -o entropy_calculator entropyCalc.c -lm
+	gcc -o entropy_calculator entropyV2.c -lm
 	./entropy_calculator
 
 clean:

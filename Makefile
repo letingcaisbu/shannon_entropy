@@ -1,6 +1,6 @@
 default:
-	gcc -o entropy_calculator entropyV2.c -lm
-	./entropy_calculator
+	gcc entropyV2.c -lm
+	./a.out
 
 clean:
-	rm entropy_calculator
+	rm a.out

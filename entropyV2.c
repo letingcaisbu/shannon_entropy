@@ -5,7 +5,8 @@
 
 static double calculateEntropy(const char *hex);
 
-int main() {
+int main()
+{
     const char hex_strings[20][65] = {
         "6f6664797a7179636f75797362636c6c6b686d68797a6d",
         "67686c666a776874726979726e726a7361796d766b787a",
@@ -26,39 +27,67 @@ int main() {
         "72617a6967706b62746179716e6e676368677567686d74",
         "7074766b646d6f6a7579756a776a677a75786275667871",
         "6970757868717866756e677763697067696e746e6b7870",
-        "726a696273707a69726a67756c71666c77737779746d72"
-    };
+        "726a696273707a69726a67756c71666c77737779746d72"};
 
     size_t num_strings = sizeof(hex_strings) / sizeof(hex_strings[0]);
+    int min_index = 0;
+    double min_entropy = __DBL_MAX__;
 
-    for (size_t i = 0; i < num_strings; i++) {
-        if (strlen(hex_strings[i]) % 2 == 0){
-            printf("Hex: %s -> Shannon Entropy: %f\n", hex_strings[i], calculateEntropy(hex_strings[i]));
+    for (size_t i = 0; i < num_strings; i++)
+    {
+        if (strlen(hex_strings[i]) % 2 == 0)
+        {
+            double entropy = calculateEntropy(hex_strings[i]);
+            if (entropy < min_entropy){
+                min_index = i;
+                min_entropy = entropy;
+            }
+            printf("Hex: %s -> Shannon Entropy: %f\n", hex_strings[i], entropy);
         }
     }
-    return 0;
+
+    printf("\nMost likely hex to be String (lowest entropy):\nHex: %s -> Shannon Entropy: %f\n", hex_strings[min_index], min_entropy);
 }
 
-static double calculateEntropy(const char *hex) {
+static double calculateEntropy(const char *hex)
+{
     int frequency[256] = {0};
     const int length = strlen(hex);
 
-    for (int i = 0; i < length-1; i++) {
-        char string[3] = {hex[i], hex[i+1], '\0'};
+    for (int i = 0; i < length - 1; i += 2)
+    {
+        char string[3] = {hex[i], hex[i + 1], '\0'};
         int index = (int)strtol(string, NULL, 16);
-        //printf("hex: %s -> int: %d\n", hexstring, number);
+
+        // Debugging
+        // printf("hex: %s -> int: %d\n", string, index);
+
+        if (index >= 256)
+        {
+            printf("this is not suppose to happen\n");
+            exit(1);
+        }
+
         frequency[index]++;
     }
 
     double entropy = 0.0;
 
-    for (int i = 0; i < 16; i++) {
-        double probability = (double)frequency[i] / length;
-        if (probability > 0) {
+    for (int i = 0; i < 256; i++)
+    {
+        if (frequency[i] <= 0){
+            continue;
+        }
+
+        //Debugging
+        //printf("Index: %d || Value: %d\n", i, frequency[i]);
+
+        double probability = (double)frequency[i] / (length / 2);
+        if (probability > 0)
+        {
             entropy -= probability * log2(probability);
         }
     }
 
     return entropy;
 }
-

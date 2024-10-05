@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-static double calculateEntropy(const char *hex);
+static double calculateEntropy(const char *hex, const size_t length);
 
 int main()
 {
@@ -35,9 +36,10 @@ int main()
 
     for (size_t i = 0; i < num_strings; i++)
     {
-        if (strlen(hex_strings[i]) % 2 == 0)
+	    size_t length = strlen(hex_strings[i]);
+        if (length % 2 == 0)
         {
-            double entropy = calculateEntropy(hex_strings[i]);
+            double entropy = calculateEntropy(hex_strings[i], length);
             if (entropy < min_entropy){
                 min_index = i;
                 min_entropy = entropy;
@@ -49,23 +51,17 @@ int main()
     printf("\nMost likely hex to be String (lowest entropy):\nHex: %s -> Shannon Entropy: %f\n", hex_strings[min_index], min_entropy);
 }
 
-static double calculateEntropy(const char *hex)
-{
-    int frequency[256] = {0};
-    const int length = strlen(hex);
+static double calculateEntropy(const char *hex, size_t length) {
+    uint8_t frequency[256] = {0}; 
+    size_t bytes_count = length / 2;
 
-    for (int i = 0; i < length - 1; i += 2)
-    {
-        char string[3] = {hex[i], hex[i + 1], '\0'};
+    for (size_t i = 0; i < bytes_count; i++) {
+        char string[3] = {hex[i * 2], hex[i * 2 + 1], '\0'};
         int index = (int)strtol(string, NULL, 16);
 
-        // Debugging
-        // printf("hex: %s -> int: %d\n", string, index);
-
-        if (index >= 256)
-        {
-            printf("this is not suppose to happen\n");
-            exit(1);
+        if (index >= 256) {
+            fprintf(stderr, "Error: Index out of bounds\n");
+            return -1;
         }
 
         frequency[index]++;
@@ -73,18 +69,9 @@ static double calculateEntropy(const char *hex)
 
     double entropy = 0.0;
 
-    for (int i = 0; i < 256; i++)
-    {
-        if (frequency[i] <= 0){
-            continue;
-        }
-
-        //Debugging
-        //printf("Index: %d || Value: %d\n", i, frequency[i]);
-
-        double probability = (double)frequency[i] / (length / 2);
-        if (probability > 0)
-        {
+    for (int i = 0; i < 256; i++) {
+        if (frequency[i] > 0) {
+            double probability = (double)frequency[i] / bytes_count;
             entropy -= probability * log2(probability);
         }
     }

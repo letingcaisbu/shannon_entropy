@@ -70,10 +70,12 @@ static double calculateEntropy(const char *hex, size_t length) {
     double entropy = 0.0;
 
     for (int i = 0; i < 256; i++) {
-        if (frequency[i] > 0) {
+	    if (frequency[i] <= 0){
+		    continue;
+	    }
+
             double probability = (double)frequency[i] / bytes_count;
             entropy -= probability * log2(probability);
-        }
     }
 
     return entropy;
